@@ -415,7 +415,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text(
-                              'Envíanos tus comentarios a hola@mirutinadiaria.app',
+                              'Envíanos tus comentarios a diegobarbecho133@gmail.com',
                             ),
                           ),
                         );
