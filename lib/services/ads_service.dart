@@ -93,8 +93,8 @@ class AdsService {
 
 const String _bannerAdUnitId = kDebugMode
     ? 'ca-app-pub-3940256099942544/6300978111'
-    : 'ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx';
+    : 'ca-app-pub-2227324033270179/6073988753';
 
 const String _interstitialAdUnitId = kDebugMode
     ? 'ca-app-pub-3940256099942544/1033173712'
-    : 'ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx';
+    : 'ca-app-pub-2227324033270179/4018671058';
