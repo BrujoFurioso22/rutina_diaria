@@ -133,6 +133,8 @@ class StorageService {
     await _routinesBox.clear();
     await _historyBox.clear();
     await _settingsBox.clear();
+    await _progressBox.clear();
+    await _journalBox.clear();
     await _ensurePresetsSeeded();
   }
 
@@ -421,11 +423,13 @@ class StorageService {
     // Placeholder in case we later persist notification metadata.
   }
 
-  /// Exporta todas las rutinas, historial y configuraciones a JSON.
+  /// Exporta todas las rutinas, historial, configuraciones, progreso y diario a JSON.
   Future<String> exportToJson() async {
     try {
       final routines = await loadRoutines();
       final history = await loadHistory();
+      final progress = loadAllProgress();
+      final journalEntries = loadJournalEntries();
 
       // Exportar TODAS las rutinas (incluyendo presets) para preservar el historial
       final allRoutines = routines.map((r) => r.toMap()).toList();
@@ -446,6 +450,8 @@ class StorageService {
         'routines': allRoutines,
         'history': history.map((e) => e.toMap()).toList(),
         'settings': settings,
+        'progress': progress.map((p) => p.toMap()).toList(),
+        'journal': journalEntries.map((e) => e.toMap()).toList(),
       };
 
       const encoder = JsonEncoder.withIndent('  ');
@@ -467,6 +473,8 @@ class StorageService {
         // Limpiar TODOS los datos existentes (incluyendo presets) para reemplazar completamente
         await _routinesBox.clear();
         await _historyBox.clear();
+        await _progressBox.clear();
+        await _journalBox.clear();
         // No limpiar settings aquí, se importarán después
       }
 
@@ -582,10 +590,67 @@ class StorageService {
         }
       }
 
+      // Importar progreso de rutinas
+      if (decoded['progress'] != null) {
+        final progressList = decoded['progress'] as List<dynamic>;
+        debugPrint('[Storage] Importando ${progressList.length} progresos...');
+        int importedProgressCount = 0;
+        for (final progressMap in progressList) {
+          try {
+            final progress = RoutineProgress.fromMap(
+              progressMap as Map<String, dynamic>,
+            );
+            // Verificar que la rutina existe
+            final allRoutines = await loadRoutines();
+            final allRoutineIds = allRoutines.map((r) => r.id).toSet();
+            if (allRoutineIds.contains(progress.routineId)) {
+              await saveProgress(progress);
+              importedProgressCount++;
+              debugPrint(
+                '[Storage] Progreso importado: rutina ${progress.routineId}',
+              );
+            } else {
+              debugPrint(
+                '[Storage] Progreso omitido: rutina ${progress.routineId} no existe',
+              );
+            }
+          } catch (e) {
+            debugPrint('[Storage] Error importando progreso: $e');
+          }
+        }
+        debugPrint(
+          '[Storage] Total progresos importados: $importedProgressCount de ${progressList.length}',
+        );
+      }
+
+      // Importar entradas del diario
+      if (decoded['journal'] != null) {
+        final journalList = decoded['journal'] as List<dynamic>;
+        debugPrint('[Storage] Importando ${journalList.length} entradas de diario...');
+        int importedJournalCount = 0;
+        for (final journalMap in journalList) {
+          try {
+            final entry = JournalEntry.fromMap(
+              journalMap as Map<String, dynamic>,
+            );
+            await saveJournalEntry(entry);
+            importedJournalCount++;
+            debugPrint('[Storage] Entrada de diario importada: ${entry.id}');
+          } catch (e) {
+            debugPrint('[Storage] Error importando entrada de diario: $e');
+          }
+        }
+        debugPrint(
+          '[Storage] Total entradas de diario importadas: $importedJournalCount de ${journalList.length}',
+        );
+      }
+
       // Forzar flush de todas las cajas para asegurar que los datos se guarden
       await _routinesBox.flush();
       await _historyBox.flush();
       await _settingsBox.flush();
+      await _progressBox.flush();
+      await _journalBox.flush();
 
       // Verificar que las rutinas se guardaron correctamente
       final savedRoutines = await loadRoutines();
