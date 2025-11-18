@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -8,7 +10,7 @@ plugins {
 // Cargar propiedades de la clave de firma
 val keystorePropertiesFile = rootProject.file("key.properties")
 val keystoreProperties = run {
-    val properties = java.util.Properties()
+    val properties = Properties()
     if (keystorePropertiesFile.exists()) {
         keystorePropertiesFile.inputStream().use { properties.load(it) }
     }
