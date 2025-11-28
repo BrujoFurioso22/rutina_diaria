@@ -38,8 +38,8 @@ class PastelPalettes {
     background: Color(0xFFF6F1FF),
     surface: Color(0xFFFFFFFF),
     outline: Color(0xFFE7DAFF),
-    textPrimary: Color(0xFF463E63),
-    textSecondary: Color(0xFF655E7A),
+    textPrimary: Color(0xFF5A5A5A),
+    textSecondary: Color(0xFF8A8A8A),
     success: Color(0xFFC5F2E3),
   );
 
@@ -51,8 +51,8 @@ class PastelPalettes {
     background: Color(0xFFF2FFF8),
     surface: Color(0xFFFFFFFF),
     outline: Color(0xFFCCF1E5),
-    textPrimary: Color(0xFF3F5A51),
-    textSecondary: Color(0xFF5F7C73),
+    textPrimary: Color(0xFF5A5A5A),
+    textSecondary: Color(0xFF8A8A8A),
     success: Color(0xFF95E0C4),
   );
 
@@ -64,8 +64,8 @@ class PastelPalettes {
     background: Color(0xFFF3F9FF),
     surface: Color(0xFFFFFFFF),
     outline: Color(0xFFD8E7FF),
-    textPrimary: Color(0xFF425366),
-    textSecondary: Color(0xFF607188),
+    textPrimary: Color(0xFF5A5A5A),
+    textSecondary: Color(0xFF8A8A8A),
     success: Color(0xFF8FD0FF),
   );
 
@@ -77,8 +77,8 @@ class PastelPalettes {
     background: Color(0xFFFFF4EF),
     surface: Color(0xFFFFFFFF),
     outline: Color(0xFFFCDACE),
-    textPrimary: Color(0xFF5B4037),
-    textSecondary: Color(0xFF7B5A4E),
+    textPrimary: Color(0xFF5A5A5A),
+    textSecondary: Color(0xFF8A8A8A),
     success: Color(0xFFEFC8B2),
   );
 
@@ -90,8 +90,8 @@ class PastelPalettes {
     background: Color(0xFFFFF0F7),
     surface: Color(0xFFFFFFFF),
     outline: Color(0xFFFFE0ED),
-    textPrimary: Color(0xFF5B3A4A),
-    textSecondary: Color(0xFF7B5A6A),
+    textPrimary: Color(0xFF5A5A5A),
+    textSecondary: Color(0xFF8A8A8A),
     success: Color(0xFFFFC5E0),
   );
 
@@ -103,8 +103,8 @@ class PastelPalettes {
     background: Color(0xFFFFFDF0),
     surface: Color(0xFFFFFFFF),
     outline: Color(0xFFFFF8D0),
-    textPrimary: Color(0xFF5B4F3A),
-    textSecondary: Color(0xFF7B6F5A),
+    textPrimary: Color(0xFF5A5A5A),
+    textSecondary: Color(0xFF8A8A8A),
     success: Color(0xFFFFE5A8),
   );
 
@@ -157,25 +157,55 @@ class AppTheme {
     final base = ThemeData.light(useMaterial3: true);
     final textTheme = GoogleFonts.poppinsTextTheme(base.textTheme).copyWith(
       headlineLarge: GoogleFonts.quicksand(
-        fontSize: 32,
+        fontSize: 22,
         fontWeight: FontWeight.w700,
         color: colors.textPrimary,
       ),
       headlineMedium: GoogleFonts.quicksand(
-        fontSize: 26,
+        fontSize: 18,
         fontWeight: FontWeight.w600,
         color: colors.textPrimary,
       ),
       titleLarge: GoogleFonts.poppins(
+        fontSize: 15,
+        fontWeight: FontWeight.w600,
+        color: colors.textPrimary,
+      ),
+      titleMedium: GoogleFonts.poppins(
+        fontSize: 14,
         fontWeight: FontWeight.w600,
         color: colors.textPrimary,
       ),
       bodyMedium: GoogleFonts.poppins(
         color: colors.textSecondary,
-        fontSize: 15,
+        fontSize: 12,
       ),
       bodySmall: GoogleFonts.poppins(
+        fontSize: 11,
         color: colors.textSecondary.withOpacity(0.85),
+      ),
+      titleSmall: GoogleFonts.poppins(
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        color: colors.textPrimary,
+      ),
+      labelLarge: GoogleFonts.poppins(
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        color: colors.textPrimary,
+      ),
+      labelMedium: GoogleFonts.poppins(
+        fontSize: 12,
+        color: colors.textSecondary,
+      ),
+      labelSmall: GoogleFonts.poppins(
+        fontSize: 11,
+        color: colors.textSecondary,
+      ),
+      headlineSmall: GoogleFonts.quicksand(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        color: colors.textPrimary,
       ),
     );
 
@@ -189,6 +219,11 @@ class AppTheme {
         surface: colors.surface,
         background: colors.background,
         error: const Color(0xFFFF9BAA),
+      ).copyWith(
+        onSurface: colors.textPrimary,
+        onBackground: colors.textPrimary,
+        onPrimary: colors.textPrimary,
+        onSecondary: colors.textPrimary,
       ),
       textTheme: textTheme,
       appBarTheme: AppBarTheme(
@@ -196,22 +231,23 @@ class AppTheme {
         elevation: 0,
         centerTitle: true,
         titleTextStyle: GoogleFonts.quicksand(
-          fontSize: 20,
+          fontSize: 17,
           fontWeight: FontWeight.w600,
           color: colors.textPrimary,
         ),
-        iconTheme: IconThemeData(color: colors.textPrimary),
+        iconTheme: IconThemeData(color: colors.textPrimary, size: 20),
+        toolbarHeight: 48,
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: colors.accent,
         foregroundColor: colors.textPrimary,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
       cardTheme: CardThemeData(
         color: colors.surface,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(20),
           side: BorderSide(color: colors.outline.withOpacity(0.6)),
         ),
       ),
@@ -237,22 +273,24 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: colors.accent,
           foregroundColor: colors.textPrimary,
-          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(22),
+            borderRadius: BorderRadius.circular(18),
           ),
           elevation: 0,
+          textStyle: const TextStyle(fontSize: 13),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           backgroundColor: colors.primary,
           foregroundColor: colors.textPrimary,
-          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(22),
+            borderRadius: BorderRadius.circular(18),
           ),
           elevation: 0,
+          textStyle: const TextStyle(fontSize: 13),
         ),
       ),
       iconTheme: IconThemeData(color: colors.textPrimary),

@@ -619,20 +619,43 @@ class RoutineController extends StateNotifier<RoutineState> {
 
   Future<Routine> _scheduleRoutineNotification(Routine routine) async {
     var updatedRoutine = routine;
-    if (routine.reminderWeekdays.isNotEmpty && routine.reminderTime != null) {
+    
+    // Primero cancelar todas las notificaciones previas de esta rutina y sus tareas
+    await _notifications.cancelRoutineReminder(routine.id);
+    for (final task in routine.tasks) {
+      if (task.reminderTime != null) {
+        await _notifications.cancelTaskReminder(routine.id, task.id);
+      }
+    }
+
+    // Si tiene repetición avanzada, usar el nuevo sistema
+    if (routine.reminderRepeat != null && routine.reminderTime != null) {
+      await _notifications.scheduleRoutineReminderWithRepeat(
+        routineId: routine.id,
+        title: routine.name,
+        time: routine.reminderTime!,
+        repeat: routine.reminderRepeat!,
+      );
+    }
+    // Sistema antiguo: compatibilidad con recordatorios por días de la semana
+    else if (routine.reminderWeekdays.isNotEmpty && routine.reminderTime != null) {
       await _notifications.scheduleRoutineReminderForWeekdays(
         routineId: routine.id,
         title: routine.name,
         time: routine.reminderTime!,
         weekdays: routine.reminderWeekdays,
       );
-    } else if (routine.reminderTime != null) {
+    }
+    // Sistema antiguo: recordatorio diario simple
+    else if (routine.reminderTime != null) {
       await _notifications.scheduleRoutineReminder(
         routineId: routine.id,
         title: routine.name,
         time: routine.reminderTime!,
       );
-    } else if (routine.reminderDate != null) {
+    }
+    // Recordatorio con fecha específica
+    else if (routine.reminderDate != null) {
       if (routine.reminderDate!.isAfter(DateTime.now())) {
         await _notifications.scheduleRoutineDateReminder(
           routineId: routine.id,
@@ -648,6 +671,21 @@ class RoutineController extends StateNotifier<RoutineState> {
         await _storage.saveRoutine(updatedRoutine);
       }
     }
+
+    // Programar notificaciones individuales por tarea
+    for (final task in routine.tasks) {
+      if (task.reminderTime != null) {
+        await _notifications.scheduleTaskReminder(
+          routineId: routine.id,
+          taskId: task.id,
+          taskTitle: task.title,
+          routineTitle: routine.name,
+          time: task.reminderTime!,
+          repeat: routine.reminderRepeat,
+        );
+      }
+    }
+
     return updatedRoutine;
   }
 

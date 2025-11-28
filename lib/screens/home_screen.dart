@@ -3,13 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../models/routine_model.dart';
-import '../models/task_model.dart';
 import '../providers/routine_controller.dart';
 import '../utils/app_theme.dart';
 import '../utils/icon_mapper.dart';
 import '../utils/streak_levels.dart';
 import '../widgets/custom_card.dart';
-import '../widgets/progress_bar.dart';
 import 'routine_detail_screen.dart';
 import 'routine_editor.dart';
 import 'routine_player.dart';
@@ -260,25 +258,18 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
         state.birthday != null &&
         state.birthday!.month == today.month &&
         state.birthday!.day == today.day;
-    const suggestions = [
-      _SuggestionItem('✨ Gratitud', 'gratitud'),
-      _SuggestionItem('💪 Energía', 'energia'),
-      _SuggestionItem('🧘‍♀️ Mindfulness', 'mindfulness'),
-      _SuggestionItem('📚 Enfoque', 'enfoque'),
-      _SuggestionItem('🌙 Buen descanso', 'descanso'),
-    ];
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       behavior: HitTestBehavior.opaque,
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             CustomCard(
               backgroundColor: AppColors.primary.withOpacity(0.28),
-              borderRadius: BorderRadius.circular(28),
+              borderRadius: BorderRadius.circular(22),
               border: Border.all(
                 color: AppColors.primary.withOpacity(0.35),
                 width: 1,
@@ -290,7 +281,7 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
                   offset: const Offset(0, 12),
                 ),
               ],
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -300,14 +291,14 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
                         : 'Hola',
                     style: Theme.of(context).textTheme.headlineMedium,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Row(
                     children: [
                       Text(
                         streakLevel.emoji,
-                        style: TextStyle(fontSize: streakLevel.size * 0.6),
+                        style: TextStyle(fontSize: streakLevel.size * 0.5),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       Expanded(
                         child: Text(
                           streak > 0
@@ -319,45 +310,14 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 18),
-                  Wrap(
-                    spacing: 10,
-                    runSpacing: 10,
-                    children: suggestions
-                        .map(
-                          (item) => GestureDetector(
-                            onTap: () =>
-                                widget.onEdit(_getSuggestedRoutine(item.key)),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 10,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.surface.withOpacity(0.85),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: AppColors.outline.withOpacity(0.7),
-                                ),
-                              ),
-                              child: Text(
-                                item.label,
-                                style: Theme.of(context).textTheme.labelLarge
-                                    ?.copyWith(color: AppColors.textPrimary),
-                              ),
-                            ),
-                          ),
-                        )
-                        .toList(),
-                  ),
                 ],
               ),
             ),
             if (isBirthdayToday) ...[
-              const SizedBox(height: 20),
+              const SizedBox(height: 14),
               CustomCard(
                 backgroundColor: AppColors.accent.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(30),
+                borderRadius: BorderRadius.circular(22),
                 border: Border.all(
                   color: AppColors.accent.withOpacity(0.45),
                   width: 1.2,
@@ -392,7 +352,7 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
                         color: AppColors.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     Text(
                       'Te mandamos un abrazo pastelón y muchos emojis felices. 💜✨',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -403,48 +363,72 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
                 ),
               ),
             ],
-            const SizedBox(height: 24),
-            Text('Tus rutinas', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 12),
-            if (state.routines.isNotEmpty)
-              CustomCard(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                child: TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: 'Buscar rutinas...',
-                    prefixIcon: const Icon(Icons.search_rounded),
-                    suffixIcon: _searchQuery.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear_rounded),
-                            onPressed: () {
-                              _searchController.clear();
-                              setState(() => _searchQuery = '');
-                            },
-                          )
-                        : null,
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
+            Text(
+              'Tus rutinas',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 6),
+            if (state.routines.isNotEmpty) ...[
+              TextField(
+                controller: _searchController,
+                style: const TextStyle(fontSize: 13),
+                decoration: InputDecoration(
+                  hintText: 'Buscar rutinas...',
+                  hintStyle: const TextStyle(fontSize: 13),
+                  prefixIcon: const Icon(Icons.search_rounded, size: 18),
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear_rounded, size: 18),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() => _searchQuery = '');
+                          },
+                        )
+                      : null,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(
+                      color: AppColors.outline.withOpacity(0.6),
+                    ),
                   ),
-                  onChanged: (value) {
-                    setState(() => _searchQuery = value);
-                  },
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(
+                      color: AppColors.outline.withOpacity(0.6),
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(
+                      color: AppColors.primary.withOpacity(0.7),
+                      width: 1.5,
+                    ),
+                  ),
+                  filled: true,
+                  fillColor: AppColors.surface,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  isDense: true,
                 ),
+                onChanged: (value) {
+                  setState(() => _searchQuery = value);
+                },
               ),
-            if (state.routines.isNotEmpty) const SizedBox(height: 12),
+              const SizedBox(height: 8),
+            ],
             if (filteredRoutines.isEmpty && state.routines.isNotEmpty)
               CustomCard(
                 child: Column(
                   children: [
                     Icon(
                       Icons.search_off_rounded,
-                      size: 48,
+                      size: 36,
                       color: AppColors.textSecondary,
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     Text(
                       'No se encontraron rutinas',
                       textAlign: TextAlign.center,
@@ -459,10 +443,10 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
                   children: [
                     Icon(
                       Icons.flag_rounded,
-                      size: 48,
+                      size: 36,
                       color: AppColors.textPrimary,
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     Text(
                       'Comienza con una de las rutinas sugeridas o crea la tuya desde cero.',
                       textAlign: TextAlign.center,
@@ -512,7 +496,7 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
                     onDelete: () => widget.onDelete(routine),
                   );
                 },
-                separatorBuilder: (_, __) => const SizedBox(height: 18),
+                separatorBuilder: (_, __) => const SizedBox(height: 10),
                 itemCount: filteredRoutines.length,
               ),
           ],
@@ -550,8 +534,8 @@ class _RoutineListTile extends StatelessWidget {
     final baseColor = Color(routine.colorHex);
     return CustomCard(
       onTap: onTap,
-      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
-      borderRadius: BorderRadius.circular(26),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      borderRadius: BorderRadius.circular(20),
       border: Border.all(color: baseColor.withOpacity(0.25), width: 1),
       shadows: [
         BoxShadow(
@@ -567,8 +551,8 @@ class _RoutineListTile extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
-                width: 48,
-                height: 48,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
                   color: baseColor.withOpacity(0.18),
                   shape: BoxShape.circle,
@@ -587,7 +571,7 @@ class _RoutineListTile extends StatelessWidget {
                       routine.name,
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 3),
                     Row(
                       children: [
                         Expanded(
@@ -673,114 +657,85 @@ class _RoutineListTile extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          RoutineProgressBar(
-            progress: hasProgress
-                ? progress.completedTasks.length / routine.tasks.length
-                : (completedToday ? 1.0 : 0.0),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            hasProgress
-                ? '${progress.completedTasks.length} de ${routine.tasks.length} pasos completados'
-                : (routine.lastCompleted != null
-                    ? 'Última vez: ${MaterialLocalizations.of(context).formatShortDate(routine.lastCompleted!)}'
-                    : 'Aún no completada'),
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
-          ),
+          if (completedToday) ...[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.success.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.success.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.check_circle_rounded,
+                    size: 16,
+                    color: AppColors.success,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Completada hoy',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.success,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else ...[
+            if (hasProgress) ...[
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppColors.primary.withOpacity(0.25),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.play_circle_outline_rounded,
+                      size: 16,
+                      color: AppColors.primary,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${progress.completedTasks.length} de ${routine.tasks.length} pasos',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ] else if (routine.lastCompleted != null) ...[
+              const SizedBox(height: 10),
+              Text(
+                'Última vez: ${MaterialLocalizations.of(context).formatShortDate(routine.lastCompleted!)}',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppColors.textSecondary,
+                  fontSize: 11,
+                ),
+              ),
+            ],
+          ],
         ],
       ),
     );
   }
 }
 
-Routine? _getSuggestedRoutine(String key) {
-  switch (key) {
-    case 'gratitud':
-      return Routine.create(
-        name: 'Rutina de Gratitud',
-        iconName: 'favorite',
-        colorHex: 0xFFFFC8DD,
-        tasks: [
-          RoutineTask.create(
-            title: 'Escribir 3 cosas por las que estoy agradecido hoy',
-          ),
-          RoutineTask.create(
-            title: 'Reflexionar sobre un momento positivo del día',
-          ),
-          RoutineTask.create(title: 'Expresar gratitud a alguien cercano'),
-          RoutineTask.create(title: 'Agradecer por algo que damos por sentado'),
-        ],
-      );
-    case 'energia':
-      return Routine.create(
-        name: 'Rutina de Energía',
-        iconName: 'bolt',
-        colorHex: 0xFFFFE5B4,
-        tasks: [
-          RoutineTask.create(title: 'Hidratarse con un vaso de agua'),
-          RoutineTask.create(title: 'Estiramiento de 5 minutos'),
-          RoutineTask.create(title: 'Respirar profundamente 10 veces'),
-          RoutineTask.create(title: 'Escuchar música motivadora'),
-          RoutineTask.create(
-            title: 'Hacer una caminata corta',
-            isOptional: true,
-          ),
-        ],
-      );
-    case 'mindfulness':
-      return Routine.create(
-        name: 'Rutina de Mindfulness',
-        iconName: 'self_improvement',
-        colorHex: 0xFFB8F2E6,
-        tasks: [
-          RoutineTask.create(title: 'Meditación de 5 minutos'),
-          RoutineTask.create(title: 'Practicar respiración consciente'),
-          RoutineTask.create(title: 'Observar el entorno sin juzgar'),
-          RoutineTask.create(title: 'Reflexionar sobre el momento presente'),
-        ],
-      );
-    case 'enfoque':
-      return Routine.create(
-        name: 'Rutina de Enfoque',
-        iconName: 'lightbulb',
-        colorHex: 0xFFBEE3FF,
-        tasks: [
-          RoutineTask.create(title: 'Revisar objetivos del día'),
-          RoutineTask.create(title: 'Eliminar distracciones del espacio'),
-          RoutineTask.create(title: 'Priorizar las 3 tareas más importantes'),
-          RoutineTask.create(
-            title: 'Configurar temporizador para trabajo profundo',
-          ),
-        ],
-      );
-    case 'descanso':
-      return Routine.create(
-        name: 'Rutina de Buen Descanso',
-        iconName: 'bedtime',
-        colorHex: 0xFFD7C0FF,
-        tasks: [
-          RoutineTask.create(
-            title: 'Apagar pantallas 30 minutos antes de dormir',
-          ),
-          RoutineTask.create(
-            title: 'Preparar el ambiente (luz tenue, temperatura cómoda)',
-          ),
-          RoutineTask.create(title: 'Hacer estiramientos suaves'),
-          RoutineTask.create(title: 'Leer o escuchar música relajante'),
-          RoutineTask.create(title: 'Reflexionar sobre el día con gratitud'),
-        ],
-      );
-    default:
-      return null;
-  }
-}
-
-class _SuggestionItem {
-  const _SuggestionItem(this.label, this.key);
-
-  final String label;
-  final String key;
-}

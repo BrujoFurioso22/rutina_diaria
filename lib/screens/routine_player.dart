@@ -221,7 +221,7 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen> {
           children: [
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               decoration: BoxDecoration(
                 color: AppColors.primary.withOpacity(0.35),
                 boxShadow: [
@@ -241,9 +241,9 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen> {
                       color: AppColors.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   RoutineProgressBar(progress: progress),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   Text(
                     _steps.isEmpty
                         ? 'Agrega pasos a la rutina para comenzar.'
@@ -252,7 +252,7 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen> {
                       color: AppColors.textSecondary,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   Text(
                     _phrase,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -265,7 +265,7 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen> {
             ),
             Expanded(
               child: ListView.separated(
-                padding: const EdgeInsets.all(22),
+                padding: const EdgeInsets.all(16),
                 itemBuilder: (context, index) {
                   final step = _steps[index];
                   final isDone = _completed[index];

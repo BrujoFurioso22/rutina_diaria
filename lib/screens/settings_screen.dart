@@ -28,9 +28,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _nameInitialized = false;
   DateTime? _birthday;
   bool _birthdayInitialized = false;
-  final TextEditingController _testDelayController = TextEditingController(
-    text: '60',
-  );
 
   @override
   void initState() {
@@ -41,7 +38,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   void dispose() {
     _nameController.dispose();
-    _testDelayController.dispose();
     super.dispose();
   }
 
@@ -49,10 +45,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(routineControllerProvider);
 
-    // Actualizar el controlador cuando el nombre cambie (inicialización o después de importar)
-    final currentName = state.displayName ?? '';
-    if (!_nameInitialized || _nameController.text != currentName) {
-      _nameController.text = currentName;
+    // Inicializar el controlador solo una vez con el valor del estado
+    if (!_nameInitialized) {
+      _nameController.text = state.displayName ?? '';
       _nameInitialized = true;
     }
 
@@ -67,7 +62,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     return Container(
       color: AppColors.background,
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -75,9 +70,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               'Preferencias',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
-            const SizedBox(height: 16),
-            Text('Tu perfil', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 12),
+            Text('Tu perfil', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 8),
             CustomCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -100,14 +95,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         const SizedBox(width: 8),
                         IconButton(
                           icon: const Icon(Icons.check_rounded, size: 20),
-                          onPressed: () {
+                          onPressed: () async {
                             final trimmed = _nameController.text.trim();
-                            ref
+                            await ref
                                 .read(routineControllerProvider.notifier)
                                 .updateDisplayName(
                                   trimmed.isEmpty ? null : trimmed,
                                 );
-                            setState(() {});
+                            if (mounted) {
+                              setState(() {});
+                            }
                           },
                           style: IconButton.styleFrom(
                             backgroundColor: AppColors.primary.withOpacity(0.1),
@@ -125,12 +122,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         const SizedBox(width: 8),
                         IconButton(
                           icon: const Icon(Icons.close_rounded, size: 20),
-                          onPressed: () {
+                          onPressed: () async {
                             _nameController.clear();
-                            ref
+                            await ref
                                 .read(routineControllerProvider.notifier)
                                 .updateDisplayName(null);
-                            setState(() {});
+                            if (mounted) {
+                              setState(() {});
+                            }
                           },
                           style: IconButton.styleFrom(
                             padding: const EdgeInsets.all(8),
@@ -142,7 +141,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ],
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -160,10 +159,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           color: AppColors.textSecondary,
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 8),
                       Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
+                        spacing: 8,
+                        runSpacing: 8,
                         children: [
                           FilledButton.tonalIcon(
                             icon: const Icon(Icons.cake_rounded),
@@ -184,7 +183,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
             Text('Sensaciones', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 12),
             CustomCard(
@@ -202,7 +201,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       color: AppColors.textSecondary,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
                   PastelToggle(
                     value: state.vibrationEnabled,
                     onChanged: (value) async {
@@ -218,7 +217,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
             Text(
               'Personalización visual',
               style: Theme.of(context).textTheme.titleLarge,
@@ -232,7 +231,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     'Elige la paleta pastel que mejor acompañe tu día.',
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
                   GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
@@ -240,9 +239,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
-                          crossAxisSpacing: 14,
-                          mainAxisSpacing: 14,
-                          childAspectRatio: 1.1,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                          childAspectRatio: 1.3,
                         ),
                     itemBuilder: (context, index) {
                       final palette = palettes[index];
@@ -256,7 +255,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
             Text(
               'Recordatorios',
               style: Theme.of(context).textTheme.titleLarge,
@@ -285,79 +284,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       'Permite recordatorios diarios y por rutina en tu dispositivo.',
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   Text(
                     'Configura los recordatorios directamente en cada rutina para elegir sus días y horarios específicos.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: AppColors.textSecondary,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _testDelayController,
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                          ],
-                          decoration: const InputDecoration(
-                            labelText: 'Segundos para la prueba',
-                            hintText: 'Ej. 60',
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      FilledButton(
-                        onPressed: state.notificationsEnabled
-                            ? _scheduleTestNotification
-                            : null,
-                        child: const Text('Programar prueba'),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  FilledButton.tonalIcon(
-                    onPressed: state.notificationsEnabled
-                        ? () async {
-                            final seconds =
-                                int.tryParse(
-                                  _testDelayController.text.trim(),
-                                ) ??
-                                60;
-                            final success = await ref
-                                .read(routineControllerProvider.notifier)
-                                .triggerTestNotification(seconds: seconds);
-                            if (!mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  success
-                                      ? 'Enviamos una notificación de prueba. Revisa tu bandeja de notificaciones.'
-                                      : 'Activa las notificaciones para enviar una prueba.',
-                                ),
-                              ),
-                            );
-                          }
-                        : null,
-                    icon: const Icon(Icons.notifications_active_rounded),
-                    label: const Text('Enviar notificación de prueba'),
-                  ),
-                  if (!state.notificationsEnabled) ...[
-                    const SizedBox(height: 12),
-                    Text(
-                      'Actualmente las notificaciones están desactivadas. Actívalas para recibir alertas puntuales.',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ],
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
             Text('Datos', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 12),
             CustomCard(
@@ -375,7 +312,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       child: const Text('Exportar'),
                     ),
                   ),
-                  const Divider(height: 32),
+                  const Divider(height: 20),
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     title: const Text('Importar datos'),
@@ -387,7 +324,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       child: const Text('Importar'),
                     ),
                   ),
-                  const Divider(height: 32),
+                  const Divider(height: 20),
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     title: const Text('Restablecer datos'),
@@ -402,7 +339,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       child: const Text('Reiniciar'),
                     ),
                   ),
-                  const Divider(height: 32),
+                  const Divider(height: 20),
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     title: const Text('Soporte y feedback'),
@@ -471,35 +408,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (mounted) {
       setState(() {});
     }
-  }
-
-  Future<void> _scheduleTestNotification() async {
-    final raw = _testDelayController.text.trim();
-    final seconds = int.tryParse(raw);
-    if (seconds == null || seconds <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Ingresa una cantidad de segundos mayor a cero.'),
-        ),
-      );
-      return;
-    }
-    final success = await ref
-        .read(routineControllerProvider.notifier)
-        .triggerTestNotification(seconds: seconds);
-    if (!mounted) {
-      return;
-    }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          success
-              ? 'Programamos una notificación para dentro de '
-                    '${seconds == 1 ? '1 segundo' : '$seconds segundos'}.'
-              : 'Activa las notificaciones para enviar una prueba.',
-        ),
-      ),
-    );
   }
 
   Future<void> _exportData() async {
@@ -629,6 +537,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       // Recargar datos en el controlador
       await ref.read(routineControllerProvider.notifier).refreshData();
 
+      // Actualizar el controlador con el nuevo nombre del estado
+      if (mounted) {
+        final newState = ref.read(routineControllerProvider);
+        _nameController.text = newState.displayName ?? '';
+      }
+
       // Cerrar el diálogo de carga
       if (!mounted) return;
       Navigator.of(context).pop();
@@ -674,6 +588,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (confirmed == true && mounted) {
       await ref.read(routineControllerProvider.notifier).resetAppData();
       if (!mounted) return;
+      // Actualizar el controlador con el nuevo estado (probablemente vacío después de resetear)
+      final newState = ref.read(routineControllerProvider);
+      _nameController.text = newState.displayName ?? '';
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Datos restablecidos correctamente.')),
       );
@@ -698,10 +615,10 @@ class _PalettePreview extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: palette.background,
-          borderRadius: BorderRadius.circular(26),
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: selected
                 ? palette.accent.withOpacity(0.8)
@@ -765,8 +682,8 @@ class _ColorDot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 18,
-      height: 18,
+      width: 14,
+      height: 14,
       decoration: BoxDecoration(
         color: color,
         shape: BoxShape.circle,

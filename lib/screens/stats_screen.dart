@@ -32,12 +32,12 @@ class StatsScreen extends ConsumerWidget {
     return Container(
       color: AppColors.background,
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Resumen', style: Theme.of(context).textTheme.headlineMedium),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             CustomCard(
               backgroundColor: AppColors.primary.withOpacity(0.28),
               child: Column(
@@ -107,7 +107,7 @@ class StatsScreen extends ConsumerWidget {
                     ),
                   ),
                   if (upcomingLevels.isNotEmpty) ...[
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
@@ -189,7 +189,7 @@ class StatsScreen extends ConsumerWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             CustomCard(
               child: Row(
                 children: [
@@ -224,7 +224,7 @@ class StatsScreen extends ConsumerWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
             Text(
               'Progreso semanal',
               style: Theme.of(context).textTheme.titleLarge,
@@ -233,7 +233,7 @@ class StatsScreen extends ConsumerWidget {
             CustomCard(
               child: _WeeklyBars(weekStart: weekStart, entries: weekEntries),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
             Text(
               'Rutinas favoritas',
               style: Theme.of(context).textTheme.titleLarge,

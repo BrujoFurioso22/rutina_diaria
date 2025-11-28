@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../models/reminder_repeat.dart';
 import '../models/routine_model.dart';
 import '../models/task_model.dart';
 import '../providers/routine_controller.dart';
@@ -27,10 +28,13 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
   late TextEditingController _nameController;
   final List<TextEditingController> _taskControllers = [];
   final List<bool> _taskOptionalFlags = [];
+  final List<TimeOfDay?> _taskReminderTimes = [];
   int _selectedColor = AppColors.primary.value;
   String _selectedIcon = 'sunny';
   TimeOfDay? _reminderTime;
   List<int> _selectedWeekdays = [];
+  DateTime? _reminderDate;
+  ReminderRepeat? _reminderRepeat;
 
   @override
   void initState() {
@@ -42,14 +46,22 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
       _selectedIcon = routine.iconName;
       _reminderTime = routine.reminderTime;
       _selectedWeekdays = [...routine.reminderWeekdays];
+      _reminderDate = routine.reminderDate;
+      _reminderRepeat = routine.reminderRepeat;
       for (final task in routine.tasks) {
         _taskControllers.add(TextEditingController(text: task.title));
         _taskOptionalFlags.add(task.isOptional);
+        _taskReminderTimes.add(task.reminderTime);
       }
     }
     if (_taskControllers.isEmpty) {
       _addTaskField();
       _addTaskField();
+    } else {
+      // Asegurar que todas las tareas tengan un slot para reminderTime
+      while (_taskReminderTimes.length < _taskControllers.length) {
+        _taskReminderTimes.add(null);
+      }
     }
   }
 
@@ -106,7 +118,7 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
           },
           behavior: HitTestBehavior.opaque,
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -127,14 +139,14 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
                           return null;
                         },
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 14),
                       Text(
                         'Icono',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
                       Wrap(
-                        spacing: 12,
+                        spacing: 8,
                         runSpacing: 12,
                         children: [
                           ...IconMapper.availableIconNames().map((name) {
@@ -142,8 +154,8 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
                             return GestureDetector(
                               onTap: () => setState(() => _selectedIcon = name),
                               child: Container(
-                                width: 56,
-                                height: 56,
+                                width: 44,
+                                height: 44,
                                 decoration: BoxDecoration(
                                   color: selected
                                       ? AppColors.primary.withOpacity(0.15)
@@ -152,7 +164,7 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
                                   border: Border.all(
                                     color: selected
                                         ? AppColors.primary
-                                        : Colors.black12,
+                                        : AppColors.outline.withOpacity(0.6),
                                     width: selected ? 2 : 1,
                                   ),
                                 ),
@@ -160,7 +172,7 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
                                   IconMapper.resolve(name),
                                   color: selected
                                       ? AppColors.primary
-                                      : Colors.black54,
+                                      : AppColors.textSecondary,
                                 ),
                               ),
                             );
@@ -172,8 +184,8 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
                             GestureDetector(
                               onTap: () => _showIconPicker(context),
                               child: Container(
-                                width: 56,
-                                height: 56,
+                                width: 44,
+                                height: 44,
                                 decoration: BoxDecoration(
                                   color: AppColors.primary.withOpacity(0.15),
                                   borderRadius: BorderRadius.circular(16),
@@ -209,14 +221,14 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 12),
                       Text(
                         'Color',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
                       Wrap(
-                        spacing: 12,
+                        spacing: 8,
                         runSpacing: 12,
                         children: [
                           ..._palette.map(
@@ -224,14 +236,14 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
                               onTap: () =>
                                   setState(() => _selectedColor = color.value),
                               child: Container(
-                                width: 36,
-                                height: 36,
+                                width: 30,
+                                height: 30,
                                 decoration: BoxDecoration(
                                   color: color,
                                   shape: BoxShape.circle,
                                   border: Border.all(
                                     color: _selectedColor == color.value
-                                        ? Colors.black.withOpacity(0.4)
+                                        ? AppColors.textSecondary.withOpacity(0.5)
                                         : Colors.transparent,
                                     width: 3,
                                   ),
@@ -251,13 +263,13 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
                             GestureDetector(
                               onTap: () => _showColorPicker(context),
                               child: Container(
-                                width: 36,
-                                height: 36,
+                                width: 30,
+                                height: 30,
                                 decoration: BoxDecoration(
                                   color: Color(_selectedColor),
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                                    color: Colors.black.withOpacity(0.4),
+                                    color: AppColors.textSecondary.withOpacity(0.5),
                                     width: 3,
                                   ),
                                   boxShadow: [
@@ -295,35 +307,54 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 12),
                       Text(
                         'Días del recordatorio diario',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
                       Wrap(
                         spacing: 8,
-                        runSpacing: 2,
+                        runSpacing: 8,
                         children: _weekdayOrder
                             .map(
-                              (day) => FilterChip(
-                                label: Text(_weekdayName(day)),
-                                selected: _selectedWeekdays.contains(day),
-                                onSelected: (_) => _toggleWeekday(day),
-                                selectedColor: AppColors.primary.withOpacity(
-                                  0.25,
-                                ),
-                                checkmarkColor: AppColors.textPrimary,
-                                backgroundColor: Colors.white.withOpacity(0.9),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(18),
-                                  side: BorderSide(
-                                    color: _selectedWeekdays.contains(day)
-                                        ? AppColors.primary.withOpacity(0.4)
-                                        : Colors.black12,
+                              (day) {
+                                final isSelected = _selectedWeekdays.contains(day);
+                                return GestureDetector(
+                                  onTap: () => _toggleWeekday(day),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 10,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? AppColors.primary.withOpacity(0.2)
+                                          : AppColors.surface,
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? AppColors.primary
+                                            : AppColors.outline.withOpacity(0.6),
+                                        width: isSelected ? 2 : 1,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      _weekdayName(day),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
+                                            color: AppColors.textSecondary,
+                                            fontWeight: isSelected
+                                                ? FontWeight.w600
+                                                : FontWeight.normal,
+                                            fontSize: 13,
+                                          ),
+                                    ),
                                   ),
-                                ),
-                              ),
+                                );
+                              },
                             )
                             .toList(),
                       ),
@@ -336,7 +367,7 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
                               ?.copyWith(color: AppColors.textSecondary),
                         ),
                       ],
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
                       ListTile(
                         contentPadding: EdgeInsets.zero,
                         title: const Text('Hora del recordatorio diario'),
@@ -361,6 +392,39 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
                               _selectedWeekdays = [];
                             }),
                             child: const Text('Quitar recordatorio diario'),
+                          ),
+                        ),
+                      const SizedBox(height: 12),
+                      const Divider(),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Recordatorio con fecha específica',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text('Fecha y hora específica'),
+                        subtitle: Text(
+                          _reminderDate != null
+                              ? '${_formatDate(_reminderDate!)} a las ${_formatTime(_reminderDate!)}'
+                              : 'Ej: "Pagar tarjeta" - 12 de diciembre a las 10:00 AM',
+                        ),
+                        trailing: FilledButton.tonal(
+                          onPressed: _pickReminderDate,
+                          child: Text(
+                            _reminderDate != null ? 'Cambiar' : 'Seleccionar',
+                          ),
+                        ),
+                      ),
+                      if (_reminderDate != null)
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () => setState(() {
+                              _reminderDate = null;
+                            }),
+                            child: const Text('Quitar fecha'),
                           ),
                         ),
                     ],
@@ -470,23 +534,53 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 12),
-                            PastelToggle(
-                              value: _taskOptionalFlags[index],
-                              onChanged: (value) {
-                                setState(() {
-                                  _taskOptionalFlags[index] = value;
-                                });
-                              },
-                              title: const Text('Opcional'),
-                              backgroundColor: AppColors.accent.withOpacity(
-                                0.18,
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                              compact: true,
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: PastelToggle(
+                                    value: _taskOptionalFlags[index],
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _taskOptionalFlags[index] = value;
+                                      });
+                                    },
+                                    title: const Text('Opcional'),
+                                    backgroundColor: AppColors.accent.withOpacity(
+                                      0.18,
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 12,
+                                    ),
+                                    compact: true,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: ListTile(
+                                    contentPadding: EdgeInsets.zero,
+                                    dense: true,
+                                    title: Text(
+                                      _taskReminderTimes[index] != null
+                                          ? 'Hora: ${_taskReminderTimes[index]!.format(context)}'
+                                          : 'Sin hora',
+                                      style: Theme.of(context).textTheme.bodySmall,
+                                    ),
+                                    trailing: FilledButton.tonal(
+                                      onPressed: () => _pickTaskReminderTime(index),
+                                      style: FilledButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                        minimumSize: const Size(0, 32),
+                                      ),
+                                      child: Text(
+                                        _taskReminderTimes[index] != null ? 'Cambiar' : 'Hora',
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -516,6 +610,7 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
     setState(() {
       _taskControllers.add(TextEditingController());
       _taskOptionalFlags.add(false);
+      _taskReminderTimes.add(null);
     });
   }
 
@@ -529,6 +624,9 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
     setState(() {
       _taskControllers.removeAt(index);
       _taskOptionalFlags.removeAt(index);
+      if (index < _taskReminderTimes.length) {
+        _taskReminderTimes.removeAt(index);
+      }
     });
   }
 
@@ -566,6 +664,43 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
     }
   }
 
+  Future<void> _pickTaskReminderTime(int taskIndex) async {
+    final initial = _taskReminderTimes[taskIndex] ?? const TimeOfDay(hour: 8, minute: 0);
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: initial,
+      helpText: 'Hora del recordatorio para esta tarea',
+      cancelText: 'Cancelar',
+      confirmText: 'Guardar',
+      initialEntryMode: TimePickerEntryMode.dial,
+      builder: (context, child) {
+        final mediaQuery = MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false);
+        final baseTheme = ThemeData.light();
+        return MediaQuery(
+          data: mediaQuery,
+          child: Theme(
+            data: baseTheme,
+            child: Localizations.override(
+              context: context,
+              locale: const Locale('en', 'US'),
+              child: child ?? const SizedBox.shrink(),
+            ),
+          ),
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() {
+        _taskReminderTimes[taskIndex] = picked;
+      });
+    } else if (_taskReminderTimes[taskIndex] != null) {
+      // Si canceló pero quiere quitar la hora
+      setState(() {
+        _taskReminderTimes[taskIndex] = null;
+      });
+    }
+  }
+
   void _toggleWeekday(int day) {
     setState(() {
       if (_selectedWeekdays.contains(day)) {
@@ -575,6 +710,60 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
       }
       _selectedWeekdays.sort();
     });
+  }
+
+  Future<void> _pickReminderDate() async {
+    final now = DateTime.now();
+    final initial = _reminderDate ?? now;
+    
+    // Seleccionar fecha
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: initial.isBefore(now) ? now : initial,
+      firstDate: now,
+      lastDate: DateTime(now.year + 1),
+      locale: const Locale('es'),
+    );
+    
+    if (pickedDate == null) return;
+    
+    // Seleccionar hora
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(initial),
+      helpText: 'Hora del recordatorio',
+      cancelText: 'Cancelar',
+      confirmText: 'Guardar',
+      initialEntryMode: TimePickerEntryMode.dial,
+    );
+    
+    if (pickedTime != null) {
+      setState(() {
+        _reminderDate = DateTime(
+          pickedDate.year,
+          pickedDate.month,
+          pickedDate.day,
+          pickedTime.hour,
+          pickedTime.minute,
+        );
+      });
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    const months = [
+      'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+      'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+    ];
+    return '${date.day} de ${months[date.month - 1]}';
+  }
+
+  String _formatTime(DateTime date) {
+    final hour = date.hour;
+    final minute = date.minute;
+    final period = hour >= 12 ? 'PM' : 'AM';
+    final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+    return '${displayHour}:${minute.toString().padLeft(2, '0')} $period';
   }
 
   Future<void> _showIconPicker(BuildContext context) async {
@@ -649,11 +838,19 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
       if (text.isEmpty) {
         continue;
       }
+      final taskReminderTime = i < _taskReminderTimes.length 
+          ? _taskReminderTimes[i] 
+          : null;
       final updatedTask =
           (i < previousTasks.length
                   ? previousTasks[i].copyWith()
-                  : RoutineTask.create(title: text))
-              .copyWith(title: text, isOptional: _taskOptionalFlags[i]);
+                  : RoutineTask.create(title: text, reminderTime: taskReminderTime))
+              .copyWith(
+                title: text, 
+                isOptional: _taskOptionalFlags[i],
+                reminderTime: taskReminderTime,
+                removeReminderTime: taskReminderTime == null && i < previousTasks.length,
+              );
       tasks.add(updatedTask);
     }
 
@@ -674,6 +871,8 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
             iconName: _selectedIcon,
             reminderTime: _reminderTime,
             reminderWeekdays: _selectedWeekdays,
+            reminderDate: _reminderDate,
+            reminderRepeat: _reminderRepeat,
           )
         : widget.routine!.copyWith(
             name: _nameController.text.trim(),
@@ -682,9 +881,12 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
             iconName: _selectedIcon,
             reminderTime: _reminderTime,
             reminderWeekdays: _selectedWeekdays,
+            reminderDate: _reminderDate,
+            reminderRepeat: _reminderRepeat,
             removeReminderTime: _reminderTime == null,
             removeReminderWeekdays: _selectedWeekdays.isEmpty,
-            removeReminderDate: true,
+            removeReminderDate: _reminderDate == null,
+            removeReminderRepeat: _reminderRepeat == null,
             updatedAt: now,
           );
 

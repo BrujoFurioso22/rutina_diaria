@@ -48,13 +48,13 @@ class RoutineDetailScreen extends ConsumerWidget {
       body: Container(
         color: AppColors.background,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Información de la rutina
               CustomCard(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(16),
                 borderRadius: BorderRadius.circular(26),
                 border: Border.all(
                   color: baseColor.withOpacity(0.25),
@@ -107,7 +107,7 @@ class RoutineDetailScreen extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 14),
                     // Botón grande para iniciar/reanudar rutina
                     Builder(
                       builder: (context) {
@@ -158,7 +158,7 @@ class RoutineDetailScreen extends ConsumerWidget {
                         );
                       },
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 14),
                     Row(
                       children: [
                         Expanded(
@@ -212,7 +212,7 @@ class RoutineDetailScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               // Historial
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

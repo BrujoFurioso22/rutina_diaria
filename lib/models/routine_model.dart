@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
+import 'reminder_repeat.dart';
 import 'task_model.dart';
 
 const _uuid = Uuid();
@@ -17,6 +18,7 @@ class Routine {
     this.reminderTime,
     this.reminderWeekdays = const [],
     this.reminderDate,
+    this.reminderRepeat,
     this.lastCompleted,
     this.completedCount = 0,
     this.presetKey,
@@ -32,6 +34,7 @@ class Routine {
   final TimeOfDay? reminderTime;
   final List<int> reminderWeekdays;
   final DateTime? reminderDate;
+  final ReminderRepeat? reminderRepeat;
   final DateTime? lastCompleted;
   final int completedCount;
   final String? presetKey;
@@ -47,9 +50,11 @@ class Routine {
     TimeOfDay? reminderTime,
     List<int>? reminderWeekdays,
     DateTime? reminderDate,
+    ReminderRepeat? reminderRepeat,
     bool removeReminderTime = false,
     bool removeReminderWeekdays = false,
     bool removeReminderDate = false,
+    bool removeReminderRepeat = false,
     DateTime? lastCompleted,
     int? completedCount,
     String? presetKey,
@@ -65,6 +70,9 @@ class Routine {
     final resolvedReminderDate = removeReminderDate
         ? null
         : reminderDate ?? this.reminderDate;
+    final resolvedReminderRepeat = removeReminderRepeat
+        ? null
+        : reminderRepeat ?? this.reminderRepeat;
     return Routine(
       id: id ?? this.id,
       name: name ?? this.name,
@@ -74,6 +82,7 @@ class Routine {
       reminderTime: resolvedReminderTime,
       reminderWeekdays: resolvedReminderWeekdays,
       reminderDate: resolvedReminderDate,
+      reminderRepeat: resolvedReminderRepeat,
       lastCompleted: lastCompleted ?? this.lastCompleted,
       completedCount: completedCount ?? this.completedCount,
       presetKey: presetKey ?? this.presetKey,
@@ -93,6 +102,7 @@ class Routine {
       'reminderMinute': reminderTime?.minute,
       'reminderWeekdays': reminderWeekdays,
       'reminderDate': reminderDate?.toIso8601String(),
+      'reminderRepeat': reminderRepeat?.toMap(),
       'lastCompleted': lastCompleted?.toIso8601String(),
       'completedCount': completedCount,
       'presetKey': presetKey,
@@ -126,6 +136,9 @@ class Routine {
       reminderDate: map['reminderDate'] != null
           ? DateTime.parse(map['reminderDate'] as String)
           : null,
+      reminderRepeat: map['reminderRepeat'] != null
+          ? ReminderRepeat.fromMap(map['reminderRepeat'] as Map<String, dynamic>)
+          : null,
       lastCompleted: map['lastCompleted'] != null
           ? DateTime.parse(map['lastCompleted'] as String)
           : null,
@@ -148,6 +161,7 @@ class Routine {
     TimeOfDay? reminderTime,
     List<int> reminderWeekdays = const [],
     DateTime? reminderDate,
+    ReminderRepeat? reminderRepeat,
     String? presetKey,
   }) {
     final now = DateTime.now();
@@ -160,6 +174,7 @@ class Routine {
       reminderTime: reminderTime,
       reminderWeekdays: reminderWeekdays,
       reminderDate: reminderDate,
+      reminderRepeat: reminderRepeat,
       presetKey: presetKey,
       createdAt: now,
       updatedAt: now,

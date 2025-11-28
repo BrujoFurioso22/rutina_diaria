@@ -27,7 +27,7 @@ class CustomCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final radius = borderRadius ?? BorderRadius.circular(24);
+    final radius = borderRadius ?? BorderRadius.circular(20);
     final decorationToUse =
         decoration ??
         BoxDecoration(
@@ -50,7 +50,7 @@ class CustomCard extends StatelessWidget {
     final content = Container(
       decoration: decorationToUse,
       padding:
-          padding ?? const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
+          padding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: child,
     );
     if (onTap == null) {

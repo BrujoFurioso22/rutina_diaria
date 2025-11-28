@@ -105,7 +105,7 @@ class ColorPickerScreen extends StatelessWidget {
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: selected
-                        ? Colors.black.withOpacity(0.4)
+                        ? AppColors.textSecondary.withOpacity(0.5)
                         : Colors.transparent,
                     width: selected ? 4 : 0,
                   ),

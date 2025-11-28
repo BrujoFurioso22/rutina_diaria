@@ -83,7 +83,7 @@ class _CongratulationModalState extends State<CongratulationModal> {
                   textAlign: TextAlign.center,
                   style: Theme.of(
                     context,
-                  ).textTheme.bodyMedium?.copyWith(color: Colors.black54),
+                  ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
                 ),
                 const SizedBox(height: 24),
                 Text(

@@ -20,7 +20,7 @@ class RoutineProgressBar extends StatelessWidget {
             color: AppColors.surface,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
+                color: AppColors.outline.withOpacity(0.2),
                 blurRadius: 12,
                 offset: const Offset(0, 6),
               ),

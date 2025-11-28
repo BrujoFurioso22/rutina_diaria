@@ -243,10 +243,10 @@ class _JournalScreenState extends ConsumerState<JournalScreen>
                   borderRadius: BorderRadius.circular(24),
                 ),
                 child: Container(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(20),
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -293,7 +293,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen>
                           ),
                         ],
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
                       // Opciones
                       Column(
                         children: [
@@ -811,7 +811,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppColors.outline.withOpacity(0.2),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),

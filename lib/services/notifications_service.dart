@@ -3,6 +3,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
+import '../models/reminder_repeat.dart';
+
 /// Maneja los recordatorios locales para las rutinas.
 class NotificationsService {
   NotificationsService._();
@@ -398,5 +400,368 @@ class NotificationsService {
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
     );
+  }
+
+  /// Programa una notificación para una tarea específica dentro de una rutina
+  Future<void> scheduleTaskReminder({
+    required String routineId,
+    required String taskId,
+    required String taskTitle,
+    required String routineTitle,
+    required TimeOfDay time,
+    ReminderRepeat? repeat,
+  }) async {
+    final notificationId = _taskNotificationId(routineId, taskId);
+    final now = DateTime.now();
+    
+    // Crear fecha inicial
+    var scheduled = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      time.hour,
+      time.minute,
+    );
+
+    // Si ya pasó hoy, programar para mañana (o según la repetición)
+    if (!scheduled.isAfter(now)) {
+      scheduled = scheduled.add(const Duration(days: 1));
+    }
+
+    if (repeat == null || repeat.type == ReminderRepeatType.none) {
+      // Notificación única
+      _logDelay('task reminder (single)', notificationId, scheduled);
+      final delay = scheduled.difference(now);
+      await scheduleCountdown(
+        notificationId: notificationId,
+        delay: delay,
+        title: taskTitle,
+        body: 'Tarea de $routineTitle',
+        payload: '$routineId|$taskId',
+        details: const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'task_reminders_channel',
+            'Recordatorios de tareas',
+            channelDescription: 'Notificaciones individuales por tarea',
+            importance: Importance.high,
+            priority: Priority.high,
+          ),
+          iOS: DarwinNotificationDetails(),
+        ),
+      );
+      return;
+    }
+
+    // Repetición diaria
+    if (repeat.type == ReminderRepeatType.daily) {
+      final tzScheduled = tz.TZDateTime(
+        tz.local,
+        scheduled.year,
+        scheduled.month,
+        scheduled.day,
+        scheduled.hour,
+        scheduled.minute,
+      );
+      await _scheduleZoned(
+        id: notificationId,
+        title: taskTitle,
+        body: 'Tarea de $routineTitle',
+        payload: '$routineId|$taskId',
+        scheduled: tzScheduled,
+        details: const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'task_daily_channel',
+            'Recordatorios diarios de tareas',
+            channelDescription: 'Notificaciones diarias por tarea',
+            importance: Importance.high,
+            priority: Priority.high,
+          ),
+          iOS: DarwinNotificationDetails(),
+        ),
+        matchComponents: DateTimeComponents.time,
+      );
+      return;
+    }
+
+    // Repetición semanal
+    if (repeat.type == ReminderRepeatType.weekly && repeat.weekdays != null) {
+      for (final weekday in repeat.weekdays!) {
+        final taskDayId = _taskNotificationIdForDay(routineId, taskId, weekday);
+        final scheduledDate = _nextDateForWeekday(time, weekday);
+        _logDelay('task weekly reminder', taskDayId, scheduledDate);
+        final delay = scheduledDate.difference(now);
+        await scheduleCountdown(
+          notificationId: taskDayId,
+          delay: delay,
+          title: taskTitle,
+          body: 'Tarea de $routineTitle',
+          payload: '$routineId|$taskId',
+          details: const NotificationDetails(
+            android: AndroidNotificationDetails(
+              'task_weekly_channel',
+              'Recordatorios semanales de tareas',
+              channelDescription: 'Notificaciones semanales por tarea',
+              importance: Importance.high,
+              priority: Priority.high,
+            ),
+            iOS: DarwinNotificationDetails(),
+          ),
+        );
+      }
+      return;
+    }
+
+    // Repetición mensual
+    if (repeat.type == ReminderRepeatType.monthly) {
+      var nextDate = scheduled;
+      if (repeat.isLastDayOfMonth) {
+        // Calcular último día del mes actual
+        final lastDay = DateTime(nextDate.year, nextDate.month + 1, 0);
+        nextDate = DateTime(lastDay.year, lastDay.month, lastDay.day, time.hour, time.minute);
+        if (!nextDate.isAfter(now)) {
+          // Pasar al próximo mes
+          final nextMonth = DateTime(nextDate.year, nextDate.month + 1, 0);
+          nextDate = DateTime(nextMonth.year, nextMonth.month, nextMonth.day, time.hour, time.minute);
+        }
+      } else if (repeat.monthDay != null) {
+        try {
+          nextDate = DateTime(nextDate.year, nextDate.month, repeat.monthDay!, time.hour, time.minute);
+          if (!nextDate.isAfter(now)) {
+            nextDate = DateTime(nextDate.year, nextDate.month + 1, repeat.monthDay!, time.hour, time.minute);
+          }
+        } catch (e) {
+          // Si el mes no tiene ese día, usar el último día
+          final lastDay = DateTime(nextDate.year, nextDate.month + 1, 0);
+          nextDate = DateTime(lastDay.year, lastDay.month, lastDay.day, time.hour, time.minute);
+        }
+      }
+
+      _logDelay('task monthly reminder', notificationId, nextDate);
+      final delay = nextDate.difference(now);
+      await scheduleCountdown(
+        notificationId: notificationId,
+        delay: delay,
+        title: taskTitle,
+        body: 'Tarea de $routineTitle',
+        payload: '$routineId|$taskId',
+        details: const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'task_monthly_channel',
+            'Recordatorios mensuales de tareas',
+            channelDescription: 'Notificaciones mensuales por tarea',
+            importance: Importance.high,
+            priority: Priority.high,
+          ),
+          iOS: DarwinNotificationDetails(),
+        ),
+      );
+      return;
+    }
+
+    // Repetición personalizada (cada N días o N semanas)
+    if (repeat.type == ReminderRepeatType.custom) {
+      DateTime nextDate;
+      if (repeat.everyNDays != null) {
+        nextDate = now.add(Duration(days: repeat.everyNDays!));
+        nextDate = DateTime(nextDate.year, nextDate.month, nextDate.day, time.hour, time.minute);
+      } else if (repeat.everyNWeeks != null) {
+        nextDate = now.add(Duration(days: repeat.everyNWeeks! * 7));
+        nextDate = DateTime(nextDate.year, nextDate.month, nextDate.day, time.hour, time.minute);
+      } else {
+        return;
+      }
+
+      _logDelay('task custom reminder', notificationId, nextDate);
+      final delay = nextDate.difference(now);
+      await scheduleCountdown(
+        notificationId: notificationId,
+        delay: delay,
+        title: taskTitle,
+        body: 'Tarea de $routineTitle',
+        payload: '$routineId|$taskId',
+        details: const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'task_custom_channel',
+            'Recordatorios personalizados de tareas',
+            channelDescription: 'Notificaciones personalizadas por tarea',
+            importance: Importance.high,
+            priority: Priority.high,
+          ),
+          iOS: DarwinNotificationDetails(),
+        ),
+      );
+    }
+  }
+
+  /// Programa un recordatorio de rutina con repetición avanzada
+  Future<void> scheduleRoutineReminderWithRepeat({
+    required String routineId,
+    required String title,
+    required TimeOfDay time,
+    required ReminderRepeat repeat,
+    DateTime? startDate,
+  }) async {
+    final baseNotificationId = _baseNotificationId(routineId);
+    final now = startDate ?? DateTime.now();
+    
+    // Crear fecha inicial
+    var scheduled = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      time.hour,
+      time.minute,
+    );
+
+    // Si ya pasó hoy, ajustar
+    if (!scheduled.isAfter(now)) {
+      scheduled = scheduled.add(const Duration(days: 1));
+    }
+
+    switch (repeat.type) {
+      case ReminderRepeatType.none:
+        // Ya manejado por scheduleRoutineDateReminder
+        break;
+
+      case ReminderRepeatType.daily:
+        final tzScheduled = tz.TZDateTime(
+          tz.local,
+          scheduled.year,
+          scheduled.month,
+          scheduled.day,
+          scheduled.hour,
+          scheduled.minute,
+        );
+        await _scheduleZoned(
+          id: baseNotificationId,
+          title: 'Es hora de tu rutina',
+          body: '¡$title te está esperando!',
+          payload: routineId,
+          scheduled: tzScheduled,
+          details: const NotificationDetails(
+            android: AndroidNotificationDetails(
+              'routine_daily_repeat_channel',
+              'Recordatorios diarios recurrentes',
+              channelDescription: 'Rutinas con repetición diaria',
+              importance: Importance.high,
+              priority: Priority.high,
+            ),
+            iOS: DarwinNotificationDetails(),
+          ),
+          matchComponents: DateTimeComponents.time,
+        );
+        break;
+
+      case ReminderRepeatType.weekly:
+        if (repeat.weekdays != null && repeat.weekdays!.isNotEmpty) {
+          await scheduleRoutineReminderForWeekdays(
+            routineId: routineId,
+            title: title,
+            time: time,
+            weekdays: repeat.weekdays!,
+          );
+        }
+        break;
+
+      case ReminderRepeatType.monthly:
+        var nextDate = scheduled;
+        if (repeat.isLastDayOfMonth) {
+          final lastDay = DateTime(nextDate.year, nextDate.month + 1, 0);
+          nextDate = DateTime(lastDay.year, lastDay.month, lastDay.day, time.hour, time.minute);
+          if (!nextDate.isAfter(now)) {
+            final nextMonth = DateTime(nextDate.year, nextDate.month + 1, 0);
+            nextDate = DateTime(nextMonth.year, nextMonth.month, nextMonth.day, time.hour, time.minute);
+          }
+        } else if (repeat.monthDay != null) {
+          try {
+            nextDate = DateTime(nextDate.year, nextDate.month, repeat.monthDay!, time.hour, time.minute);
+            if (!nextDate.isAfter(now)) {
+              nextDate = DateTime(nextDate.year, nextDate.month + 1, repeat.monthDay!, time.hour, time.minute);
+            }
+          } catch (e) {
+            final lastDay = DateTime(nextDate.year, nextDate.month + 1, 0);
+            nextDate = DateTime(lastDay.year, lastDay.month, lastDay.day, time.hour, time.minute);
+          }
+        }
+
+        _logDelay('routine monthly reminder', baseNotificationId, nextDate);
+        final delay = nextDate.difference(now);
+        await scheduleCountdown(
+          notificationId: baseNotificationId,
+          delay: delay,
+          title: 'Es hora de tu rutina',
+          body: '¡$title te está esperando!',
+          payload: routineId,
+          details: const NotificationDetails(
+            android: AndroidNotificationDetails(
+              'routine_monthly_channel',
+              'Recordatorios mensuales',
+              channelDescription: 'Rutinas con repetición mensual',
+              importance: Importance.high,
+              priority: Priority.high,
+            ),
+            iOS: DarwinNotificationDetails(),
+          ),
+        );
+        break;
+
+      case ReminderRepeatType.custom:
+        DateTime nextDate;
+        if (repeat.everyNDays != null) {
+          nextDate = now.add(Duration(days: repeat.everyNDays!));
+          nextDate = DateTime(nextDate.year, nextDate.month, nextDate.day, time.hour, time.minute);
+        } else if (repeat.everyNWeeks != null) {
+          nextDate = now.add(Duration(days: repeat.everyNWeeks! * 7));
+          nextDate = DateTime(nextDate.year, nextDate.month, nextDate.day, time.hour, time.minute);
+        } else {
+          return;
+        }
+
+        _logDelay('routine custom reminder', baseNotificationId, nextDate);
+        final delay = nextDate.difference(now);
+        await scheduleCountdown(
+          notificationId: baseNotificationId,
+          delay: delay,
+          title: 'Es hora de tu rutina',
+          body: '¡$title te está esperando!',
+          payload: routineId,
+          details: const NotificationDetails(
+            android: AndroidNotificationDetails(
+              'routine_custom_channel',
+              'Recordatorios personalizados',
+              channelDescription: 'Rutinas con repetición personalizada',
+              importance: Importance.high,
+              priority: Priority.high,
+            ),
+            iOS: DarwinNotificationDetails(),
+          ),
+        );
+        break;
+    }
+  }
+
+  /// Cancela todas las notificaciones de una tarea específica
+  Future<void> cancelTaskReminder(String routineId, String taskId) async {
+    if (!_initialized) return;
+    try {
+      final baseId = _taskNotificationId(routineId, taskId);
+      await cancelNotification(baseId);
+      for (var weekday = DateTime.monday; weekday <= DateTime.sunday; weekday++) {
+        final dayId = _taskNotificationIdForDay(routineId, taskId, weekday);
+        await cancelNotification(dayId);
+      }
+    } catch (e) {
+      debugPrint('[Notifications] Error cancelando recordatorio de tarea: $e');
+    }
+  }
+
+  int _taskNotificationId(String routineId, String taskId) {
+    final combined = '$routineId|$taskId';
+    return combined.hashCode & 0x7FFFFFFF;
+  }
+
+  int _taskNotificationIdForDay(String routineId, String taskId, int weekday) {
+    final base = _taskNotificationId(routineId, taskId);
+    return (base + weekday + 1000) & 0x7FFFFFFF;
   }
 }

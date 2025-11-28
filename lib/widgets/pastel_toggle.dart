@@ -148,7 +148,7 @@ class _PastelSwitch extends StatelessWidget {
             color: Colors.white,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.08),
+                color: AppColors.outline.withOpacity(0.3),
                 blurRadius: compact ? 4 : 6,
                 offset: const Offset(0, 2),
               ),

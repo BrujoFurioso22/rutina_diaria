@@ -49,7 +49,7 @@ class IconPickerScreen extends StatelessWidget {
                   border: Border.all(
                     color: selected
                         ? AppColors.primary
-                        : Colors.black.withOpacity(0.1),
+                        : AppColors.outline.withOpacity(0.3),
                     width: selected ? 2.5 : 1,
                   ),
                   boxShadow: selected
@@ -62,7 +62,7 @@ class IconPickerScreen extends StatelessWidget {
                         ]
                       : [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: AppColors.outline.withOpacity(0.2),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),
